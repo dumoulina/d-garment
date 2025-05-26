@@ -2,7 +2,7 @@ pages:
   tags:
     - ci.inria.fr
     - linux
-    - small #  change this comment
+    - small #  change this comment ok
   stage: deploy
   script:
     - mkdir .public
