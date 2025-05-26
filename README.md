@@ -11,13 +11,14 @@
   </p>
 
   <p align="center" style="margin: 2em auto;">
-    <a href='https://dumoulin.gitlabpages.inria.fr/dgarment/' style='padding-left: 0.5rem;'><img src='https://img.shields.io/badge/Project' alt='Project Page'></a>
+    <a href='https://adumouli.gitlabpages.inria.fr/dgarment' style='padding-left: 0.5rem;'><img alt="Static Badge" src="https://img.shields.io/badge/Project%20page-%20green"></a>
     <a href='https://arxiv.org/abs/2504.03468'><img src='https://img.shields.io/badge/arXiv-Paper_PDF-red?style=flat&logo=arXiv&logoColor=green' alt='Paper PDF'></a>
   </p>
 
   <p align="center" style="font-size:16px">Official code for D-Garment</p>
+  <p align="center" style="font-size:16px">Coming soon</p>
   <p align="center">
-    <img src="media/teaser.png" />
+    <img src="static/images/teaser.png" />
   </p>
 </div>
 
@@ -33,5 +34,3 @@
 ```
 
 # License
-Apache 2.0
-
