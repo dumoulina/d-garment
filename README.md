@@ -17,9 +17,6 @@
 
   <p align="center" style="font-size:16px">Official code for D-Garment</p>
   <p align="center" style="font-size:16px">Coming soon</p>
-  <p align="center">
-    <img src="static/images/teaser.png" />
-  </p>
 </div>
 
 # Citation
