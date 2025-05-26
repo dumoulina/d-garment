@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations">
+  <meta name="keywords" content="Garment, dynamic">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations</h1>
+          <div class="is-size-5 publication-authors">
+
+            <span class="author-block">
+              <a href="https://dumoulin.me/">Antoine Dumoulin<sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://boukhayma.github.io/">Adnane Boukhayma<sup>2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.inrialpes.fr/sed/people/boissieux">Laurence Boissieux</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://sites.google.com/view/bharath-bhushan">Bharath Bhushan Damodaran</a><sup>3</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://people.irisa.fr/Pierre.Hellier">Pierre Hellier</a><sup>2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://swuhrer.gitlabpages.inria.fr/website">Stefanie Wuhrer</a><sup>1</sup>,
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Inria Centre at the University Grenoble Alpes</span>
+            <span class="author-block"><sup>2</sup>Inria, University of Rennes, CNRS, IRISA-UMR 6074</span>
+            <span class="author-block"><sup>3</sup>Interdigital Inc.</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://hal.science/hal-05027298"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span> -->
+              <!-- Video Link. -->
+              <!-- <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span> -->
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://gitlab.inria.fr/adumouli/dgarment"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-gtilab"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column">
+
+        <figure>
+          <img src="./static/images/teaser.png">
+          <figcaption>Fig.1 -  This figure illustrates frames of two different motions (1, 2) and three cloth materials (a, b, c). </figcaption>
+        </figure>
+
+        <div class="content has-text-justified">
+          <p>
+            <b>TLDR:</b> We introduce a latent diffusion model that allows to generate dynamic garment deformations from physical inputs defined by a cloth material and the underlying body shape and motion.
+            Our model is capable of representing large deformations and fine wrinkles of dynamic loose clothing.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+
+  </div>
+</section>
+
+<!-- <section class="hero teaser"></section>
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <iframe style="border:1;display:block;margin:auto" width="853" height="480" src="https://www.youtube-nocookie.com/embed/W8oWipc-mXE" title="SiggraphAsia2024 TeaserVideo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      <h2 class="subtitle has-text-centered">
+      </h2>
+    </div>
+  </div>
+</section> -->
+
+<!-- 
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" controls muted loop playsinline height="100%">
+        <source src="https://kinovis.inria.fr/files/2024/10/MilllimetricHumanSurfaceCapture_640x360.mp4"
+                type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+      </h2>
+    </div>
+  </div>
+</section>
+-->
+
+
+<!-- <section class="hero is-light is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-ben-sho-run">
+          <video poster="" id="ben-sho-run" controls muted loop playsinline height="100%">
+            <source src="https://kinovis.inria.fr/files/2024/10/ben-sho-run.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-bob-jea-box">
+          <video poster="" id="bob-jea-box" controls muted loop playsinline height="100%">
+            <source src="https://kinovis.inria.fr/files/2024/10/bob-jea-box.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-kim-jea-dance">
+          <video poster="" id="kim-jea-dance" controls muted loop playsinline height="100%">
+            <source src="https://kinovis.inria.fr/files/2024/10/kim-jea-dance.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-leo-jea-roll">
+          <video poster="" id="leo-jea-roll" controls muted loop playsinline height="100%">
+            <source src="https://kinovis.inria.fr/files/2024/10/leo-jea-roll.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-mia-opt-cartwheel">
+          <video poster="" id="mia-opt-cartwheel" controls muted loop playsinline height="100%">
+            <source src="https://kinovis.inria.fr/files/2024/10/mia-opt-cartwheel.mp4"
+                    type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h2 class="subtitle has-text-centered">
+    Reconstruction examples with real-time rendering and playback on the 4DHumanOutfit dataset.
+  </h2>
+</section> -->
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Adjusting and deforming 3D garments to body shapes, body motion, and cloth material is an important problem in virtual and augmented reality. Applications are numerous, ranging from virtual change rooms to the entertainment and gaming industry.
+            This problem is challenging as garment dynamics influence geometric details such as wrinkling patterns, which depend on physical input including the wearer's body shape and motion, as well as cloth material features.
+            Existing work studies learning-based modeling techniques to generate garment pose-driven deformations from example data, and physics-inspired simulators to generate realistic garment dynamics.
+            We propose here a learning-based approach trained on data generated with a physics-based simulator. Compared to prior work, our 3D generative model learns garment deformations for loose cloth geometry,
+            especially for large deformations and dynamic wrinkles driven by body motion and cloth material. Furthermore, the model can be efficiently fitted to observations captured using vision sensors.
+            We propose to leverage the capability of diffusion models to learn fine-scale detail: we model the 3D garment in a 2D parameter space, and learn a latent diffusion model using this representation independent from the mesh resolution.
+            This allows to condition global and local geometric information with body and material information. We quantitatively and qualitatively evaluate our method on both simulated data and data captured with a multi-view acquisition platform.
+            Compared to strong baselines, our method is more accurate in terms of Chamfer distance.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Overview -->
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Overview</h2>
+        
+        <figure>
+          <embed src="./static/images/overview.pdf" width="800px" height="400px" />
+        </figure>
+        
+        <div class="content has-text-justified">
+          <p>
+            Our model generates garment deformations conditioned on body shape, motion and cloth material.
+            It builds upon a 2D latent diffusion model to learn how to deform a template in uv-space.
+            3D mesh vertex displacement from template is parameterized by the uv displacement map, and our model is trained on it along with the conditional inputs.
+            At inference, our model generates the deformed garment by iteratively denoising the Gaussian noise w.r.t. its conditional inputs. 
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Overview -->
+  </div>
+</section>
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <p>
+      If you find our work useful, consider citing:
+    </p>
+    <pre><code>
+      @article{dumoulin2025dgarment,
+        title={D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations},
+        author={Dumoulin, Antoine and Boukhayma, Adnane and Boissieux, Laurence and Damodaran, Bharath Bhushan and Hellier, Pierre and Wuhrer, Stefanie},
+        journal={arXiv preprint arXiv:2504.03468},
+        year={2025},
+        url = {https://doi.org/10.48550/arXiv.2504.03468}
+      }
+</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is based on the <a href="https://github.com/nerfies/nerfies.github.io">nerfies template</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
