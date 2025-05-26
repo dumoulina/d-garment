@@ -7,7 +7,7 @@
     <a href="https://www.inrialpes.fr/sed/people/boissieux/"><strong>Laurence Boissieux</strong></a><br>
     <a href="https://sites.google.com/view/bharath-bhushan"><strong>Bharath Bhushan Damodaran</strong></a> ·
     <a href="https://people.irisa.fr/Pierre.Hellier/"><strong>Pierre Hellier</strong></a> ·
-    <a href="https://swuhrer.gitlabpages.inria.fr/website/"><strong>Stefanie Wuhrer</strong></a> ·
+    <a href="https://swuhrer.gitlabpages.inria.fr/website/"><strong>Stefanie Wuhrer</strong></a>
   </p>
 
   <p align="center" style="margin: 2em auto;">
