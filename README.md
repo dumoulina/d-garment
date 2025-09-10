@@ -11,7 +11,7 @@
   </p>
 
   <p align="center" style="margin: 2em auto;">
-    <a href='https://adumouli.gitlabpages.inria.fr/dgarment' style='padding-left: 0.5rem;'><img alt="Static Badge" src="https://img.shields.io/badge/Project%20page-%20green"></a>
+    <a href='https://dumoulina.github.io/d-garment/' style='padding-left: 0.5rem;'><img alt="Static Badge" src="https://img.shields.io/badge/Project%20page-%20green"></a>
     <a href='https://arxiv.org/abs/2504.03468'><img src='https://img.shields.io/badge/arXiv-Paper_PDF-red?style=flat&logo=arXiv&logoColor=green' alt='Paper PDF'></a>
   </p>
 
