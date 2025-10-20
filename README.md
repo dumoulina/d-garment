@@ -11,12 +11,11 @@
   </p>
 
   <p align="center" style="margin: 2em auto;">
-    <a href='https://dumoulina.github.io/d-garment/' style='padding-left: 0.5rem;'><img alt="Static Badge" src="https://img.shields.io/badge/Project%20page-%20green"></a>
-    <a href='https://arxiv.org/abs/2504.03468'><img src='https://img.shields.io/badge/arXiv-Paper_PDF-red?style=flat&logo=arXiv&logoColor=green' alt='Paper PDF'></a>
+    <a href='https://dumoulina.github.io/d-garment/'><img alt="Project website" src="https://img.shields.io/badge/Project_page-%20green"></a>
+    <a href='https://arxiv.org/abs/2504.03468'><img src='https://img.shields.io/badge/arXiv-Paper PDF-red?style=flat&logo=arXiv&logoColor=green' alt='Arxiv'></a>
+    <a href='https://entrepot.recherche.data.gouv.fr/dataset.xhtml?persistentId=doi:10.57745/GZTNJC'><img src='https://img.shields.io/badge/Dataset-blue' alt='Dataset'></a>
   </p>
 
-  <p align="center" style="font-size:16px">Official code for D-Garment</p>
-  <p align="center" style="font-size:16px">Coming soon</p>
 </div>
 
 # Citation
