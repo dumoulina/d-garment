@@ -1,0 +1,16 @@
+{
+  "_class_name": "VDMStableDiffusionPipeline",
+  "_diffusers_version": "0.33.0.dev0",
+  "scheduler": [
+    "diffusers",
+    "DDPMScheduler"
+  ],
+  "unet": [
+    "diffusers",
+    "UNet2DConditionModel"
+  ],
+  "vae": [
+    "diffusers",
+    "AutoencoderKL"
+  ]
+}

@@ -1,0 +1,289 @@
+# Copyright 2024 The HuggingFace Team. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import List, Optional, Union
+import trimesh
+import torch
+
+from diffusers.models import AutoencoderKL, UNet2DConditionModel
+from diffusers.schedulers import KarrasDiffusionSchedulers
+# from model.InputAdapter import InputAdapter
+from data.kinovis_dataset import KinovisDataset
+from losses.losses import uv_loss, collision_loss, smooth_loss
+from losses.objectives import GMoF, chamfer_distance
+from utils.geometry import batch_compute_points_normals, l2dist
+from utils.uv_tools import apply_displacement
+from enum import Flag, auto
+from data.normalization import get_normalized_body, flatten_embeddings, unnormalize_cloth
+from utils.helpers import batchify_dict
+from utils.visualization import Record
+from model.VDM_latent import VDMStableDiffusionPipeline, retrieve_timesteps
+
+class Loss(Flag):
+    NULL = 0                # no loss
+    BI_CHAMFER = auto()     # bidirectional chamfer distance
+    S2T_CHAMFER = auto()    # unidirectional chamfer distance from source to target
+    T2S_CHAMFER = auto()    # unidirectional chamfer distance from target to source
+
+class VDMStableDiffusionPipelineReconstruct(VDMStableDiffusionPipeline):
+    def __init__(
+        self,
+        vae: AutoencoderKL,
+        unet: UNet2DConditionModel,
+        scheduler: KarrasDiffusionSchedulers,
+    ):
+        super().__init__(vae, unet, scheduler)
+
+    def prepare_latents(self, batch_size, generator, latents=None):
+        latents = super().prepare_latents(batch_size, generator, latents)
+        return torch.nn.Parameter(latents)
+
+    def __call__(
+        self,
+        target,
+        dataset: KinovisDataset,
+        num_inference_steps: int = 5,
+        num_opti_steps=50,
+        lr: float = 1e-2,
+        reg_weight: float = 0,
+        objectives: Loss = Loss.T2S_CHAMFER,
+        optimize_material: bool = False,
+        timesteps: List[int] = None,
+        sigmas: List[float] = None,
+        num_images_per_prompt: Optional[int] = 1,
+        eta: float = 0.0,
+        generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+        latents: Optional[torch.Tensor] = None,
+        output_type: Optional[str] = "pt",
+        register_losses=dict(),
+        visualize=False,
+    ):
+        r"""
+        The call function to the pipeline for generation.
+
+        Args:
+            target(`KinovisDict`):
+                The conditions to use. 
+            objectives(`Flag.Loss`):
+                The optimization objectives to minimize, several can be concatenated using Flag syntax `Loss.A | Loss.B`.
+            num_inference_steps (`int`, *optional*, defaults to 50):
+                The number of denoising steps. More denoising steps usually lead to a higher quality image at the
+                expense of slower inference.
+            timesteps (`List[int]`, *optional*):
+                Custom timesteps to use for the denoising process with schedulers which support a `timesteps` argument
+                in their `set_timesteps` method. If not defined, the default behavior when `num_inference_steps` is
+                passed will be used. Must be in descending order.
+            sigmas (`List[float]`, *optional*):
+                Custom sigmas to use for the denoising process with schedulers which support a `sigmas` argument in
+                their `set_timesteps` method. If not defined, the default behavior when `num_inference_steps` is passed
+                will be used.
+            num_images_per_prompt (`int`, *optional*, defaults to 1):
+                The number of images to generate per prompt.
+            eta (`float`, *optional*, defaults to 0.0):
+                Corresponds to parameter eta (η) from the [DDIM](https://arxiv.org/abs/2010.02502) paper. Only applies
+                to the [`~schedulers.DDIMScheduler`], and is ignored in other schedulers.
+            generator (`torch.Generator` or `List[torch.Generator]`, *optional*):
+                A [`torch.Generator`](https://pytorch.org/docs/stable/generated/torch.Generator.html) to make
+                generation deterministic.
+            latents (`torch.Tensor`, *optional*):
+                Pre-generated noisy latents sampled from a Gaussian distribution, to be used as inputs for image
+                generation. Can be used to tweak the same generation with different prompts. If not provided, a latents
+                tensor is generated by sampling using the supplied random `generator`.
+            output_type (`str`, *optional*, defaults to `"pil"`):
+                The output format of the generated image. Choose between `PIL.Image` or `np.array`.
+
+        Examples:
+
+        Returns:
+            torch.Tensor
+        """
+        # if len(target["trans"].shape) == 2:
+        #     for k in target.keys():
+        #         if isinstance(target[k], torch.Tensor):
+        #             target[k] = target[k][None, ...]
+
+        # 1. Prepare data
+        device = self._execution_device
+
+        optimized_parameters = []
+
+        if len(target["trans"].shape) == 2:
+            target = batchify_dict(target)
+
+        bodict = {}
+        bodict['poses'] = target['poses'][:, -1]
+        bodict['trans'] = target['trans'][:, -1]
+        bodict['betas'] = target['betas']
+        body_vertices = dataset.body_model(bodict)
+        body_faces = dataset.body_model.get_faces()
+        body_normal = batch_compute_points_normals(body_vertices, body_faces)
+
+        batch_size = target["trans"].shape[0]
+
+        target['bending'] = torch.full((batch_size,1), 1e-6).to(device)
+        target['stretching'] = torch.full((batch_size,1), 120.).to(device)
+        target['density'] = torch.full((batch_size,1), 0.08,).to(device)
+
+        if optimize_material:
+            target['bending'] = torch.nn.Parameter(target['bending'])
+            target['stretching'] = torch.nn.Parameter(target['stretching'])
+            target['density'] = torch.nn.Parameter(target['density'])
+            optimized_parameters += [target['bending'], target['stretching'], target['density']]
+
+        target_embedding = flatten_embeddings(target).to(self.unet.dtype)
+
+        register_losses[Loss.BI_CHAMFER.name] = []
+        for k in ['mean', 'smooth', 'collision']:
+            register_losses[k] = []
+        for k in objectives:
+            register_losses[k.name] = []
+
+        # 4. Prepare timesteps
+        timesteps, num_inference_steps = retrieve_timesteps(
+            self.scheduler, num_inference_steps, device, timesteps, sigmas
+        )
+
+        # 5. Prepare latent variables
+        learned_latents = self.prepare_latents(
+            batch_size * num_images_per_prompt,
+            generator,
+            latents,
+        )
+        optimized_parameters.append(learned_latents)
+
+        # 6. Prepare extra step kwargs. TODO: Logic should ideally just be moved out of the pipeline
+        extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
+        macclure = GMoF(2)
+
+        # 7. Prepare optimizer
+        optimizer = torch.optim.Adam(optimized_parameters, lr=lr)
+        # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=lr, total_steps=num_opti_steps)
+    
+        if visualize:
+            viewer = Record()
+            v = target['captured_mesh']['v'].detach().cpu().squeeze()
+            rgb = torch.ones_like(v)
+            gt_mesh = trimesh.Trimesh(v, target['captured_mesh']['f'].detach().cpu().squeeze(), vertex_colors=rgb)
+            v = body_vertices.detach().cpu().squeeze()
+            rgb = torch.ones_like(v)
+            body_mesh = trimesh.Trimesh(v, body_faces.cpu(), vertex_colors=rgb)
+
+        # 8. Denoising loop with latent optimization
+        self._num_timesteps = len(timesteps)
+        with self.progress_bar(total=num_opti_steps+1) as progress_bar:
+            for optim_step in range(num_opti_steps+1):
+                latents = learned_latents
+                self.scheduler.set_timesteps(num_inference_steps, device=device)
+                for i, t in enumerate(timesteps):
+
+                    # predict the noise residual
+                    with torch.no_grad():
+                    
+                        noise_pred = self.unet(
+                            latents,
+                            t,
+                            encoder_hidden_states=target_embedding,
+                            return_dict=False,
+                        )[0]
+
+                    latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
+
+                image = self.decode_latents(latents)
+
+                if optim_step < num_opti_steps:
+
+                    cloth_vertices = apply_displacement(dataset.template, image)
+                    target['cloth_vertices'] = cloth_vertices
+                    unnormalize_cloth(target)
+                    vertices = torch.cat((target['cloth_vertices'], body_vertices), dim=-2)
+
+                    cham_x, cham_y, _, _, _, _ = chamfer_distance(target['captured_mesh']['v'], vertices)
+
+                    cham_x = macclure(cham_x).sum()
+                    cham_y = macclure(cham_y).sum()
+
+                    loss = torch.zeros(1, device=device)
+
+                    if Loss.T2S_CHAMFER in objectives:
+                        loss += cham_x
+                        register_losses[Loss.T2S_CHAMFER.name].append(cham_x.detach().cpu().item())
+
+                    if Loss.S2T_CHAMFER in objectives:
+                        loss += cham_y
+                        register_losses[Loss.S2T_CHAMFER.name].append(cham_y.detach().cpu().item())
+
+                    dist_loss = (cham_x+cham_y) * 0.5
+
+                    register_losses[Loss.BI_CHAMFER.name].append(dist_loss.detach().cpu().item())
+
+                    if Loss.BI_CHAMFER in objectives:
+                        loss += dist_loss
+
+                    collision = collision_loss(cloth_vertices, body_vertices, body_normal)
+                    collision = (torch.exp(collision)-1).sum()
+
+                    mean_loss = torch.mean(learned_latents**2)
+                    smooth = smooth_loss(target['cloth_vertices'], dataset.template.f[None, ...])
+
+                    reg_loss = mean_loss + smooth #+ collision
+
+                    if reg_weight > 0:
+                        loss += reg_loss * reg_loss
+
+                    register_losses['collision'].append(smooth.detach().cpu().item())
+                    register_losses['smooth'].append(smooth.detach().cpu().item())
+                    register_losses['mean'].append(mean_loss.detach().cpu().item())
+                    
+                    optimizer.zero_grad()
+                    loss.backward(retain_graph=False)
+                    # torch.nn.utils.clip_grad_norm_(learned_latents, 1.0)
+                    # print(torch.isnan(latents).any())
+                    # for name, param in self.unet.named_parameters():
+                    #     if param.grad is not None and torch.isnan(param.grad).any():
+                    #         print(f"unet NaNs in gradient of {name}")
+                    # for name, param in self.vae.named_parameters():
+                    #     if param.grad is not None and torch.isnan(param.grad).any():
+                    #         print(f"vae NaNs in gradient of {name}")
+
+                    optimizer.step()
+                    # scheduler.step()
+
+                    postfix = dict()
+                    for k in register_losses.keys():
+                        postfix[k] = register_losses[k][-1]
+                    postfix['b'] = target['bending'].detach().cpu().item()
+                    postfix['s'] = target['stretching'].detach().cpu().item()
+                    postfix['d'] = target['density'].detach().cpu().item()
+                    progress_bar.set_postfix(postfix)
+
+                if visualize and optim_step%5==0:
+                    v = target['cloth_vertices'].detach().cpu().squeeze()
+                    rgb = torch.ones_like(v)
+                    estimated = trimesh.Trimesh(v, dataset.template.f.detach().cpu(), vertex_colors=rgb)
+
+                    viewer.update_mesh(estimated+body_mesh+gt_mesh)
+
+                progress_bar.update()
+
+        if output_type == "latent":
+            image = learned_latents.detach()
+        elif output_type == "v":
+            image = target['cloth_vertices'].detach()
+        else:
+            image = target['cloth_vertices'].detach()
+
+        # Offload all models
+        self.maybe_free_model_hooks()
+
+        return image.detach().requires_grad_(False)

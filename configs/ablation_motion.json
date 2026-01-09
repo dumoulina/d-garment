@@ -1,0 +1,80 @@
+{
+    "device": "cuda",
+    "mixed_precision": "bf16",
+    "normalization": {
+        "uv": true,
+        "trans": true,
+        "rotation": true
+    },
+    "dataset": {
+        "folder": ".../DATASET_PATH",
+        "amass_folder": ".../BODY_MOTION_DATASET",
+        "simulation_config": ".../simulation_base.json",
+        "simulator_exe_path": ".../projectivefriction/build/ProjectiveFriction",
+        "body_shape_sample_count": 3,
+        "body_shape_sampled_scale": 1,
+        "material_sample_count": 3,
+        "material":{
+          "stretching_coeff_min": 40,
+          "stretching_coeff_max": 200,
+          "bending_coeff_min": 1e-08,
+          "bending_coeff_max": 1e-4,
+          "density_min": 1e-2,
+          "density_max": 7e-1
+        },
+        "interpolation_steps": 100,
+        "stabilization_steps": 100,
+        "frame_rate": 50,
+        "collision_tolerance": 0.015
+    },
+    "body_model": {
+        "smpl_seg_file": "./body_models/smpl_vert_segmentation.json",
+        "smpl_info": "./body_models/smplh/female/model.npz",
+        "dmpl_info": "./body_models/dmpls/female/model.npz",
+        "num_betas": 8,
+        "arm_rotation": 0
+    },
+    "model": {
+        "sequence_length": 1,
+        "use_material": true,
+        "encoder_hid_dim": 119,
+        "cross_attention_dim": 119,
+        "attention_head_dim": 4,
+        "image_size": 512
+    },
+    "vae": {
+        "folder": "../models/D-Garment/vae",
+        "autoencoder_scale": 8,
+        "max_epochs": 1,
+        "batch_size": 4,
+        "lr": 1e-6,
+        "kl_loss": 1e-10,
+        "mesh_loss": 100,
+        "uv_loss": 0.1,
+        "eval_freq": 100
+    },
+    "template_path": ".../DATASET_PATH/mean_shape.obj",
+    "subdivided_template_path": ".../DATASET_PATH/mean_shape_subdivided.obj",
+    "training": {
+        "lr_warmup_steps": 100,
+        "lr": 1e-4,
+        "gradient_accumulation_steps":1,
+        "batch_size": 32,
+        "max_epochs": 50,
+        "save_freq": 1000,
+        "num_train_timesteps": 1000,
+        "weight_decay": 1e-2
+    },
+    "validation": {
+        "proportion": 0.05,
+        "eval_freq": 1000,
+        "batch_size": 1
+    },
+    "kinovis": {
+        "folder": ".../4DHumanOutfitScans"
+    },
+    "output": {
+        "folder": "../models/ablation_motion",
+        "test": "../EXPERIMENT/"
+    }
+}
