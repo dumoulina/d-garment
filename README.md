@@ -148,7 +148,7 @@ The VAE decoder can be finetuned using `vae_finetune.ipynb`
 
 To train the U-net diffusion model run:
 ```sh
-py train.py ../configs/config.json
+py training.py ../configs/config.json
 ```
 
 # Generate evaluation and ablations

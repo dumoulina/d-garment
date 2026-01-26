@@ -1,6 +1,6 @@
 import torch
 from data.garment_dataset import GarmentDataset
-from data.structures import GarmentDict
+from data.structures import GarmentDict, dataclass_collate
 from torch.utils.data import DataLoader, random_split
 import json
 import torch.nn.functional as F
@@ -22,6 +22,7 @@ def main(config_file=None):
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
     torch.set_float32_matmul_precision('high')
+    torch.multiprocessing.set_start_method('spawn')
 
     description = 'Training script for D-Garment'
     parser = argparse.ArgumentParser(description=description,
@@ -44,8 +45,8 @@ def main(config_file=None):
                                                          generator=torch.Generator('cpu').manual_seed(0))
 
     print("Using train/eval split: " + str(len(train_dataset)) + " / " + str(len(eval_dataset)))
-    train_dataloader = DataLoader(train_dataset, batch_size=config["training"]["batch_size"], drop_last=True, num_workers=4, prefetch_factor=2, shuffle=True, persistent_workers=True, pin_memory=True)
-    eval_dataloader = DataLoader(eval_dataset, batch_size=config["validation"]["batch_size"], drop_last=True, num_workers=2, prefetch_factor=2, shuffle=True, persistent_workers=True, pin_memory=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=config["training"]["batch_size"], drop_last=True, num_workers=4, prefetch_factor=2, shuffle=True, persistent_workers=True, pin_memory=True, collate_fn=dataclass_collate)
+    eval_dataloader = DataLoader(eval_dataset, batch_size=config["validation"]["batch_size"], drop_last=True, num_workers=2, prefetch_factor=2, shuffle=True, persistent_workers=True, pin_memory=True, collate_fn=dataclass_collate)
 
     accelerator = Accelerator(
         mixed_precision=config["mixed_precision"],
@@ -114,6 +115,14 @@ def main(config_file=None):
     unet = stable_diff.unet
     noise_scheduler = stable_diff.scheduler
 
+    torch.random.manual_seed(0)
+    
+    vae.requires_grad_(False)
+    unet.requires_grad_(True)
+    
+    vae.eval()
+    unet.train()
+    
     optimizer = torch.optim.AdamW(unet.parameters(), lr=config["training"]["lr"], weight_decay=config["training"]["weight_decay"])
     
     lr_scheduler = get_cosine_schedule_with_warmup(
@@ -131,13 +140,6 @@ def main(config_file=None):
 
         print("Resuming epoch: " + str(resumed_epoch))
 
-    torch.random.manual_seed(0)
-    
-    vae.requires_grad_(False)
-    unet.requires_grad_(True)
-    
-    vae.eval()
-    unet.train()
 
     vae.to(accelerator.device, memory_format=torch.channels_last)
     vae.decode = torch.compile(vae.decode, mode="max-autotune", fullgraph=True, dynamic=True)
@@ -154,7 +156,7 @@ def main(config_file=None):
             "scheduler": noise_scheduler.config,
             "config": config
             },
-            init_kwargs={"wandb": {"id": os.path.basename(config["output"]["folder"])}}
+            init_kwargs={"wandb": {"name": os.path.basename(config["output"]["folder"])}}
         )
         # wandb.watch(unet, log='all', log_freq=1000, log_graph=False)
 
@@ -173,7 +175,7 @@ def main(config_file=None):
             batch:GarmentDict
             optimizer.zero_grad(set_to_none=True)
             # latents = batch["latents"].to(accelerator.device, non_blocking=True)
-            
+
             with torch.no_grad():
 
                 latents = vae.encode(batch.vdm.permute(0,3,1,2)).latent_dist.sample()
@@ -228,9 +230,9 @@ def main(config_file=None):
                 accelerator.wait_for_everyone()
                 if accelerator.is_main_process:
                     # eval
-                    with torch.inference_mode():
+                    with torch.no_grad():
                         pipeline = VDMStableDiffusionPipeline(unet=accelerator.unwrap_model(unet),
-                                                            vae=accelerator.unwrap_model(vae),
+                                                            vae=vae,
                                                             scheduler=noise_scheduler,)
                         pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config, algorithm_type="sde-dpmsolver++")
                         pipeline.set_progress_bar_config(disable=True)

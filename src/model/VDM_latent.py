@@ -118,10 +118,6 @@ class VDMStableDiffusionPipeline(
     ):
         super().__init__()
 
-        unet.requires_grad_(False).eval()
-        vae.decoder.requires_grad_(False).eval()
-        vae.encoder.requires_grad_(False).eval()
-
         self.register_modules(
             vae=vae,
             unet=unet,
@@ -321,71 +317,62 @@ class VDMStableDiffusionPipeline(
 
         device = self._execution_device
 
-        prev_gradient_context = torch.is_grad_enabled()
-        torch.set_grad_enabled(gradient)
-        self._interrupt = False
-        use_guidance = body_model and template and condition and (acceleration_weight!=0 or clothing_weight!=0)
+        with torch.set_grad_enabled(gradient):
+            self._interrupt = False
+            use_guidance = body_model and template and condition and (acceleration_weight!=0 or clothing_weight!=0)
 
-        # 1. Prepare data
-        if condition is not None:
-            if len(condition["trans"].shape) == 2:
-                condition = batchify_dict(condition)
+            # 1. Prepare data
+            if condition is not None:
+                if len(condition["trans"].shape) == 2:
+                    condition = batchify_dict(condition)
 
-            if use_guidance:
-                bodict = {}
-                bodict["betas"] = condition["betas"]
-                bodict["trans"], bodict["poses"] = get_normalized_body(condition)
-                bodict["trans"] = bodict["trans"][:, -1]
-                bodict["poses"] = bodict["poses"][:, -1]
-                body_vertices = body_model(bodict)
-                body_faces = body_model.get_faces()
-                del bodict
-                body_normal = batch_compute_points_normals(body_vertices, body_faces)
+                if use_guidance:
+                    bodict = {}
+                    bodict["betas"] = condition["betas"]
+                    bodict["trans"], bodict["poses"] = get_normalized_body(condition)
+                    bodict["trans"] = bodict["trans"][:, -1]
+                    bodict["poses"] = bodict["poses"][:, -1]
+                    body_vertices = body_model(bodict)
+                    body_faces = body_model.get_faces()
+                    del bodict
+                    body_normal = batch_compute_points_normals(body_vertices, body_faces)
 
-            condition_embedding = flatten_embeddings(condition, material=use_material, do_normalize=normalize_material).to(device, self.unet.dtype)
-            batch_size = condition_embedding.shape[0]
-        else:
-            condition_embedding = None
-            batch_size = 1
+                condition_embedding = flatten_embeddings(condition, material=use_material, do_normalize=normalize_material).to(device, self.unet.dtype)
+                batch_size = condition_embedding.shape[0]
+            else:
+                condition_embedding = None
+                batch_size = 1
 
-        # 4. Prepare timesteps
-        timesteps, num_inference_steps = retrieve_timesteps(
-            self.scheduler, num_inference_steps, device, timesteps, sigmas
-        )
+            # 4. Prepare timesteps
+            timesteps, num_inference_steps = retrieve_timesteps(
+                self.scheduler, num_inference_steps, device, timesteps, sigmas
+            )
 
-        # 5. Prepare latent variables
-        latents = self.prepare_latents(
-            batch_size,
-            generator,
-            latents,
-        )
+            # 5. Prepare latent variables
+            latents = self.prepare_latents(
+                batch_size,
+                generator,
+                latents,
+            )
 
-        # scale the initial noise by the standard deviation required by the scheduler
-        latents = latents * self.scheduler.init_noise_sigma
+            # scale the initial noise by the standard deviation required by the scheduler
+            latents = latents * self.scheduler.init_noise_sigma
 
-        # 6. Prepare extra step kwargs. TODO: Logic should ideally just be moved out of the pipeline
-        extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
+            # 6. Prepare extra step kwargs. TODO: Logic should ideally just be moved out of the pipeline
+            extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
 
-        # 7. Denoising loop
-        num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
-        self._num_timesteps = len(timesteps)
-        with self.progress_bar(total=num_inference_steps) as progress_bar:
-            for i, t in enumerate(timesteps):
-                if self.interrupt:
-                    continue
+            # 7. Denoising loop
+            num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
+            self._num_timesteps = len(timesteps)
+            with self.progress_bar(total=num_inference_steps) as progress_bar:
+                for i, t in enumerate(timesteps):
+                    if self.interrupt:
+                        continue
 
-                latents = self.scheduler.scale_model_input(latents, t)
+                    latents = self.scheduler.scale_model_input(latents, t)
 
-                # predict the noise residual
-                if gradient_unet:
-                    noise_pred = self.unet(
-                        latents,
-                        t,
-                        encoder_hidden_states=condition_embedding,
-                        return_dict=False,
-                    )[0]
-                else:
-                    with torch.no_grad(): # block condition gradients but is faster and seems to converge better
+                    # predict the noise residual
+                    with torch.set_grad_enabled(gradient_unet): # block condition gradients but is faster and seems to converge better
                         noise_pred = self.unet(
                             latents,
                             t,
@@ -393,22 +380,21 @@ class VDMStableDiffusionPipeline(
                             return_dict=False,
                         )[0]
 
-                if use_guidance and i > opti_warmup:
-                    noise_pred = self.guidance_func(latents, noise_pred, t, acceleration_weight, clothing_weight, template, body_vertices, body_normal, target)
+                    if use_guidance and i > opti_warmup:
+                        noise_pred = self.guidance_func(latents, noise_pred, t, acceleration_weight, clothing_weight, template, body_vertices, body_normal, target)
 
-                # compute the previous noisy sample x_t -> x_t-1
-                latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs, return_dict=False)[0]
+                    # compute the previous noisy sample x_t -> x_t-1
+                    latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs, return_dict=False)[0]
 
-                if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
-                    progress_bar.update()
+                    if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
+                        progress_bar.update()
 
-        if decoded:
-            image = self.decode_latents(latents)
-        else:
-            image = latents
-        
-        # Offload all models
-        self.maybe_free_model_hooks()
-        torch.set_grad_enabled(prev_gradient_context)
+            if decoded:
+                image = self.decode_latents(latents)
+            else:
+                image = latents
+            
+            # Offload all models
+            self.maybe_free_model_hooks()
 
         return image
