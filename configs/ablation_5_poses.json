@@ -37,8 +37,8 @@
     "model": {
         "sequence_length": 5,
         "use_material": true,
-        "encoder_hid_dim": 415,
-        "cross_attention_dim": 415,
+        "encoder_hid_dim": 563,
+        "cross_attention_dim": 563,
         "attention_head_dim": 4,
         "image_size": 512
     },

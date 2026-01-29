@@ -8,7 +8,7 @@ from model.VDM_latent import VDMStableDiffusionPipeline
 from data.normalization import flatten_embeddings
 import os
 import argparse
-from accelerate import Accelerator
+from accelerate import Accelerator, DataLoaderConfiguration
 from tqdm.auto import tqdm
 from diffusers.optimization import get_cosine_schedule_with_warmup
 from diffusers import AutoencoderKL, UNet2DConditionModel
@@ -21,8 +21,10 @@ def main(config_file=None):
 
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
+    torch.backends.cudnn.benchmark = True
     torch.set_float32_matmul_precision('high')
-    torch.multiprocessing.set_start_method('spawn')
+    torch.multiprocessing.set_start_method('forkserver')
+    torch.multiprocessing.set_sharing_strategy('file_system')
 
     description = 'Training script for D-Garment'
     parser = argparse.ArgumentParser(description=description,
@@ -47,12 +49,13 @@ def main(config_file=None):
     print("Using train/eval split: " + str(len(train_dataset)) + " / " + str(len(eval_dataset)))
     train_dataloader = DataLoader(train_dataset, batch_size=config["training"]["batch_size"], drop_last=True, num_workers=4, prefetch_factor=2, shuffle=True, persistent_workers=True, pin_memory=True, collate_fn=dataclass_collate)
     eval_dataloader = DataLoader(eval_dataset, batch_size=config["validation"]["batch_size"], drop_last=True, num_workers=2, prefetch_factor=2, shuffle=True, persistent_workers=True, pin_memory=True, collate_fn=dataclass_collate)
-
+    dataloader_config = DataLoaderConfiguration(non_blocking=True)
     accelerator = Accelerator(
         mixed_precision=config["mixed_precision"],
         gradient_accumulation_steps=config["training"]["gradient_accumulation_steps"],
         log_with="wandb",
         project_dir=os.path.join(config["output"]["folder"], "logs"),
+        dataloader_config=dataloader_config
     )
 
     if not resume_epoch:
@@ -144,9 +147,7 @@ def main(config_file=None):
     vae.to(accelerator.device, memory_format=torch.channels_last)
     vae.decode = torch.compile(vae.decode, mode="max-autotune", fullgraph=True, dynamic=True)
     vae.encode = torch.compile(vae.encode, mode="max-autotune", fullgraph=True, dynamic=True)
-    # wrappedModels.unet = torch.compile(wrappedModels.unet, mode="reduce-overhead", dynamic=True)
-    # train_dataset = TrainingDataset(train_dataset, vae)
-
+    # unet = torch.compile(unet, mode="reduce-overhead", dynamic=True)
 
     if accelerator.is_main_process:
         os.makedirs(config["output"]["folder"], exist_ok=True)
@@ -177,8 +178,8 @@ def main(config_file=None):
             # latents = batch["latents"].to(accelerator.device, non_blocking=True)
 
             with torch.no_grad():
-
-                latents = vae.encode(batch.vdm.permute(0,3,1,2)).latent_dist.sample()
+                with accelerator.autocast():
+                    latents = vae.encode(batch.vdm.permute(0,3,1,2)).latent_dist.sample()
                 latents = latents * vae.config.scaling_factor   # https://github.com/huggingface/diffusers/issues/437
 
                 noise = torch.randn_like(latents)
@@ -194,7 +195,8 @@ def main(config_file=None):
 
                 # Predict the noise residual
                 states = flatten_embeddings(batch, material=config['model']['use_material'])
-                pred = unet(noisy_latents, timesteps, encoder_hidden_states=states, return_dict=False)[0]
+                with accelerator.autocast():
+                    pred = unet(noisy_latents, timesteps, encoder_hidden_states=states, return_dict=False)[0]
 
                 if noise_scheduler.config.prediction_type == "epsilon":
                     target = noise

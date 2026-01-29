@@ -35,6 +35,7 @@ class GarmentDataset(Dataset):
         self.device = device
         self.dtype = dtype
         self.lazy_data: list[LazyDict] = []
+        self.smpl_seq_cache = {}
         self.subdivide = subdivide
 
         self.template = Mesh(config=config, dtype=dtype, device=device, subdivide=subdivide)
@@ -63,6 +64,14 @@ class GarmentDataset(Dataset):
                             self.lazy_data.append(frame)
                     except Exception as e:
                         print(str(e) + ": " + simulation_dir)
+                
+                smpl_seq = SMPL_Sequence(seq_file, dtype=self.dtype).to(self.device)
+                seq = smpl_seq.smpl_data()
+                seq["poses"] = seq["poses"][:, :66]
+                seq["root_joint_position"] = self.body_model(seq, Jtr=True)[1][:, 0]
+                seq["number_of_frames"] = smpl_seq.number_of_frames()
+                self.smpl_seq_cache[seq_file] = seq
+
 
     @torch.no_grad()
     def __len__(self):
@@ -73,30 +82,26 @@ class GarmentDataset(Dataset):
 
         lazy_data = self.lazy_data[idx]
 
-        smpl_seq = SMPL_Sequence(lazy_data.smpl_seq_path, dtype=self.dtype).to(self.device)
-        seq = smpl_seq.smpl_data()
-
-        seq["poses"] = seq["poses"][:, :66]
+        smpl_seq = self.smpl_seq_cache[lazy_data.smpl_seq_path]
 
         frame_idx = lazy_data.frame_idx
 
-        last_frames = torch.arange(frame_idx-self.seq_len+1, frame_idx+1, 1, dtype=int).clamp(0, smpl_seq.number_of_frames()-1)
+        last_frames = torch.arange(frame_idx-self.seq_len+1, frame_idx+1, 1, dtype=int).clamp(0, smpl_seq["number_of_frames"]-1)
 
         vertices, _ = load_ply(lazy_data.cloth_path)
         vertices = vertices.to(self.device, self.dtype)
 
         frame_data = GarmentDict(
-            betas = seq["betas"],
-            poses = seq["poses"][last_frames],
-            trans = seq["trans"][last_frames],
+            betas = smpl_seq["betas"],
+            poses = smpl_seq["poses"][last_frames],
+            trans = smpl_seq["trans"][last_frames],
             bending = torch.tensor([lazy_data.bending], device=self.device),
             stretching = torch.tensor([lazy_data.stretching], device=self.device),
             density = torch.tensor([lazy_data.density], device=self.device),
+            root_joint_position = smpl_seq["root_joint_position"][last_frames[-1]],
             cloth_vertices = vertices
         )
-
-        frame_data.root_joint_position = self.body_model(frame_data, Jtr=True)[1][-1][0]
-
+        
         normalize_cloth(frame_data, self.trans_normalized, self.rot_normalized)
         if not self.subdivide:  # useless to compute that outside training when using subdivided template
             cloth_position_map = mesh_uv_position(frame_data.cloth_vertices, self.template.f, self.template.uv_face, self.template.uv_barycentric, self.img_size)
