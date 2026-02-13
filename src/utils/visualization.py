@@ -97,9 +97,9 @@ def moving_average(values, window_size):
         return values
     return np.convolve(values, np.ones(window_size)/window_size, mode='valid')
 
-def plot_dict(dict, title="", xlabel="Step", ylabel="Value", legend=True, normalize=True, smoothing_window=1, save=False, dirname='./plots/'):
+def plot_dict(dict, title="", xlabel="Step", ylabel="Value", legend=True, normalize=True, boxplot=False, smoothing_window=1, save=False, dirname='./plots/', figsize=(8,5)):
 
-    plt.figure(figsize=(8, 5))
+    plt.figure(figsize=figsize)
     for label, values in dict.items():
         values = list(values)
         values = moving_average(values, smoothing_window)
@@ -119,7 +119,11 @@ def plot_dict(dict, title="", xlabel="Step", ylabel="Value", legend=True, normal
             max_val = None
         
         # Plot
-        plt.plot(norm_values, label=f"{label} (min={min_val:.2f}, max={max_val:.2f})" if normalize else label)
+        if boxplot:
+            plt.boxplot(norm_values, positions=[list(dict.keys()).index(label)])
+            plt.xticks(range(len(dict)), list(dict.keys()))
+        else:
+            plt.plot(norm_values, label=f"{label} (min={min_val:.2f}, max={max_val:.2f})" if normalize else label)
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

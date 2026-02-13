@@ -8,7 +8,7 @@ from pytorch3d.io.ply_io import load_ply
 from pytorch3d.transforms import axis_angle_to_matrix
 from pytorch3d.structures import Meshes
 from data.garment_dataset import GarmentDataset
-from data.normalization import unnormalize_cloth
+# from data.normalization import unnormalize_cloth
 from utils.file_management import list_files, list_subfolders
 from utils.geometry import resolve_penetration
 from utils.visualization import Sequencevisualizer
@@ -168,6 +168,8 @@ if __name__ == '__main__':
                         help='The path to the template mesh file corresponding to the cloth rest shape')
     parser.add_argument('--post_process', action='store_true',
                         help='Whether to use the post-processing to resolve penetrations')
+    parser.add_argument('--split', type=str, default='TEST',
+                        help='Split to use during evaluation')
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -182,11 +184,13 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
 
+    FRAME_STEP = 5
+
     config['normalization']['rotation'] = False
     config['normalization']['trans'] = False
     config["model"]["sequence_length"] = 1
 
-    dataset = GarmentDataset(config, device=device, subsets=['TEST'], subdivide=False)
+    dataset = GarmentDataset(config, device=device, subsets=[args.split], subdivide=False)
     body_model = dataset.body_model
     gt_sequences = dataset.get_seq_dict()
 
@@ -195,8 +199,10 @@ if __name__ == '__main__':
 
     if 'MGDDG' in args.eval_dir:
         files = sorted(list_subfolders(args.eval_dir, "simulation_"))
-    else:
+    elif 'ContourCraft' in args.eval_dir or 'HOOD' in args.eval_dir:
         files = sorted(list_files(args.eval_dir, "simulation_"))
+    else:
+        files = sorted(list_files(args.eval_dir, ".pt"))
     body_faces = body_model.get_faces()
 
     for seq_file, gt_key in zip(files, gt_sequences):
@@ -214,7 +220,7 @@ if __name__ == '__main__':
         if not (check_conditions('1', '0', 'B16') or check_conditions('0', '1', 'B17') or check_conditions('1', '1', 'C19')):
             continue
         print(seq_file)
-        body_v, gt_vertices = get_gt_vertices(gt_key, 5)
+        body_v, gt_vertices = get_gt_vertices(gt_key, FRAME_STEP)
 
         if 'HOOD' in args.eval_dir:
             vertices = load_hood_sequence(seq_file, 0, 3)
@@ -226,7 +232,7 @@ if __name__ == '__main__':
             vertices = load_zhang_sequence(seq_file, 5)
             vertices = unnormalize_vertices(vertices, gt_key)
         else:
-            vertices = load_sequence(seq_file, 5)
+            vertices = load_sequence(seq_file, FRAME_STEP)
 
         # Clip to the minimum batch size, aligned on the ground truth
         bs = gt_vertices.shape[0]

@@ -19,7 +19,7 @@ class GarmentDataset(Dataset):
         - a simulator json file linking to cloth material
     '''
     @torch.no_grad()
-    def __init__(self, config, dtype=torch.float32, device="cpu", subsets=['ACCAD', 'KIT'], subdivide=False):
+    def __init__(self, config, dtype=torch.float32, device="cpu", subsets=['ACCAD', 'KIT'], subdivide=False, training=True):
         '''
         Args:
             config (Dict): Configuration from json file.
@@ -37,7 +37,7 @@ class GarmentDataset(Dataset):
         self.lazy_data: list[LazyDict] = []
         self.smpl_seq_cache = {}
         self.subdivide = subdivide
-
+        self.training = training
         self.template = Mesh(config=config, dtype=dtype, device=device, subdivide=subdivide)
 
         config_cp = config.copy()
@@ -103,7 +103,7 @@ class GarmentDataset(Dataset):
         )
         
         normalize_cloth(frame_data, self.trans_normalized, self.rot_normalized)
-        if not self.subdivide:  # useless to compute that outside training when using subdivided template
+        if not self.subdivide and self.training:  # useless to compute that outside training when using subdivided template
             cloth_position_map = mesh_uv_position(frame_data.cloth_vertices, self.template.f, self.template.uv_face, self.template.uv_barycentric, self.img_size)
             vdm = cloth_position_map - self.template.position_map
             frame_data.vdm = vdm

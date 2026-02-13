@@ -41,7 +41,7 @@ def main(config_file=None):
 
     resume_epoch = os.path.exists(os.path.join(config["output"]["folder"], "checkpoint.pt"))
 
-    dataset = GarmentDataset(config, device="cpu")
+    dataset = GarmentDataset(config, device="cpu", subsets=['TRAIN'])
     train_dataset, eval_dataset = random_split(dataset, [1. - config["validation"]["proportion"],
                                                          config["validation"]["proportion"]],
                                                          generator=torch.Generator('cpu').manual_seed(0))
@@ -243,11 +243,11 @@ def main(config_file=None):
 
                         img = pipeline(eval_data, num_inference_steps=20, generator=torch.Generator(device='cpu').manual_seed(0), use_material=config['model']['use_material'])
 
-                        examples = []
-                        image = wandb.Image(img[0].permute(2,0,1), caption="Generated")
-                        examples.append(image)
-                        image = wandb.Image(eval_data.vdm[0].permute(2,0,1), caption="Ground truth")
-                        examples.append(image)
+                        # examples = []
+                        # image = wandb.Image(img[0].permute(2,0,1), caption="Generated")
+                        # examples.append(image)
+                        # image = wandb.Image(eval_data.vdm[0].permute(2,0,1), caption="Ground truth")
+                        # examples.append(image)
 
                         estimated_vertices = apply_displacement(dataset.template, img, dataset.img_size).cpu()
                         ground_truth = eval_data.cloth_vertices.cpu()
@@ -263,7 +263,8 @@ def main(config_file=None):
                         # wandb.log({"point_cloud": wandb.Object3D(estimated_vertices_colored)})
                         eval_loss = eval_loss.mean()
 
-                    logs = {"eval_dist": eval_loss.detach().item(), "Images": examples}
+                    logs = {"eval_dist": eval_loss.detach().item()}
+                    # logs = {"eval_dist": eval_loss.detach().item(), "Images": examples}
                     accelerator.log(logs, step=global_step)
 
                     # torch.save(img.cpu(), os.path.join(config["output"]["folder"], 'samples/step_' + str(step) + '.pt'))

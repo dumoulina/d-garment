@@ -10,6 +10,8 @@ if __name__ == '__main__':
                                      prog='Metrics-computation')
     parser.add_argument('eval_dir', type=str,
                         help='The evaluation directory where metrics are saved')
+    parser.add_argument('--best', type=bool, default=False,
+                        help='Whether print best scores in bold')
     args = parser.parse_args()
 
     metrics_files = list_files(args.eval_dir, pattern=r'metrics.*\.json')
@@ -52,40 +54,40 @@ if __name__ == '__main__':
     latex_table += "\\hline\n"
 
     for name, scores in all_scores.items():
-        v2v_dist = f"{scores['v2v_dist']*100:.4f}"
-        chamfer = f"{scores['chamfer']*100:.4f}"
-        normal = f"{scores['normal']:.4f}"
-        penetration = f"{scores['penetration'] * 100:.4f}"
-        curvature = f"{scores['curvature']:.4f}"
-        wrinkling = f"{scores['wrinkling']:.4f}"
-        edge_strain = f"{scores['edge_strain']:.4f}"
-        area_strain = f"{scores['area_strain']*1e5:.4f}"
-        height_diff = f"{scores['height_diff']*100:.4f}"
-        mass_center = f"{scores['mass_center']*100:.4f}"
-        mass_center_height = f"{scores['mass_center_height']*100:.4f}"
-
-        if name == best_scores['v2v_dist'][0]:
-            v2v_dist = "\\textbf{" + v2v_dist + "}"
-        if name == best_scores['chamfer'][0]:
-            chamfer = "\\textbf{" + chamfer + "}"
-        if name == best_scores['normal'][0]:
-            normal = "\\textbf{" + normal + "}"
-        if name == best_scores['penetration'][0]:
-            penetration = "\\textbf{" + penetration + "}"
-        if name == best_scores['curvature'][0]:
-            curvature = "\\textbf{" + curvature + "}"
-        if name == best_scores['wrinkling'][0]:
-            wrinkling = "\\textbf{" + wrinkling + "}"
-        if name == best_scores['edge_strain'][0]:
-            edge_strain = "\\textbf{" + edge_strain + "}"
-        if name == best_scores['area_strain'][0]:
-            area_strain = "\\textbf{" + area_strain + "}"
-        if name == best_scores['height_diff'][0]:
-            height_diff = "\\textbf{" + height_diff + "}"
-        if name == best_scores['mass_center'][0]:
-            mass_center = "\\textbf{" + mass_center + "}"
-        if name == best_scores['mass_center_height'][0]:
-            mass_center_height = "\\textbf{" + mass_center_height + "}"
+        v2v_dist = f"{scores['v2v_dist']*100:.2f}"
+        chamfer = f"{scores['chamfer']*100:.2f}"
+        normal = f"{scores['normal']:.2f}"
+        penetration = f"{scores['penetration'] * 100:.2f}"
+        curvature = f"{scores['curvature']:.2f}"
+        wrinkling = f"{scores['wrinkling']:.2f}"
+        edge_strain = f"{scores['edge_strain']:.2f}"
+        area_strain = f"{scores['area_strain']*1e5:.2f}"
+        height_diff = f"{scores['height_diff']*100:.2f}"
+        mass_center = f"{scores['mass_center']*100:.2f}"
+        mass_center_height = f"{scores['mass_center_height']*100:.2f}"
+        if args.best:
+            if name == best_scores['v2v_dist'][0]:
+                v2v_dist = "\\textbf{" + v2v_dist + "}"
+            if name == best_scores['chamfer'][0]:
+                chamfer = "\\textbf{" + chamfer + "}"
+            if name == best_scores['normal'][0]:
+                normal = "\\textbf{" + normal + "}"
+            if name == best_scores['penetration'][0]:
+                penetration = "\\textbf{" + penetration + "}"
+            if name == best_scores['curvature'][0]:
+                curvature = "\\textbf{" + curvature + "}"
+            if name == best_scores['wrinkling'][0]:
+                wrinkling = "\\textbf{" + wrinkling + "}"
+            if name == best_scores['edge_strain'][0]:
+                edge_strain = "\\textbf{" + edge_strain + "}"
+            if name == best_scores['area_strain'][0]:
+                area_strain = "\\textbf{" + area_strain + "}"
+            if name == best_scores['height_diff'][0]:
+                height_diff = "\\textbf{" + height_diff + "}"
+            if name == best_scores['mass_center'][0]:
+                mass_center = "\\textbf{" + mass_center + "}"
+            if name == best_scores['mass_center_height'][0]:
+                mass_center_height = "\\textbf{" + mass_center_height + "}"
 
         latex_table += f"{name} & {v2v_dist} & {chamfer} & {normal} & {penetration} & {wrinkling} & {area_strain} & {mass_center} \\\\ \n"
 

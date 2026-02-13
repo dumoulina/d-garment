@@ -48,6 +48,8 @@ if __name__ == '__main__':
                         help='Whether to use the subdivided template for evaluation')
     parser.add_argument('--step', type=int, default=20,
                         help='Number of diffusion steps to use during evaluation')
+    parser.add_argument('--split', type=str, default='TEST',
+                        help='Split to use during evaluation')
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -62,11 +64,15 @@ if __name__ == '__main__':
     np.random.seed(0)
     torch.manual_seed(0)
 
-    dataset = GarmentDataset(config, device="cuda", subsets=['TEST'], subdivide=args.subdivide)
+    dataset = GarmentDataset(config, device="cuda", subsets=[args.split], subdivide=args.subdivide)
     sequences = dataset.get_seq_dict()
 
     pipeline = VDMStableDiffusionPipeline.from_pretrained(config["output"]["folder"], torch_dtype=torch.float16).to("cuda:0")
     pipeline.scheduler = DPMSolverMultistepScheduler.from_config(pipeline.scheduler.config, algorithm_type="sde-dpmsolver++")
+
+    pipeline.unet.requires_grad_(False).eval()
+    pipeline.vae.decoder.requires_grad_(False).eval()
+    pipeline.vae.encoder.requires_grad_(False).eval()
 
     step = args.step
     VAL_DIR = args.eval_dir

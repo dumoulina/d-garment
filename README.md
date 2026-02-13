@@ -158,6 +158,7 @@ py generate_evaluation.py ../configs/config.json ${EXP_DATA}/dgarment/
 py generate_evaluation.py ../configs/ablation_material.json ${EXP_DATA}/ABLATION/ablation_material/
 py generate_evaluation.py ../configs/ablation_motion.json ${EXP_DATA}/ABLATION/ablation_motion/
 py generate_evaluation.py ../configs/config.json ${EXP_DATA}/ABLATION/dgarment_subdivision/ --subdivide
+py generate_evaluation.py ../configs/ablation_5_poses.json ${EXP_DATA}/ABLATION/ablation_5_poses/
 ```
 
 # Running the model
@@ -175,7 +176,8 @@ Then to run the model and the ablations:
 py metrics.py ../configs/config.json ${EXP_DATA}/dgarment/ ${DATASET}/Cos5kZero.obj &
 py metrics.py ../configs/config.json ${EXP_DATA}/ABLATION/ablation_motion/ ${DATASET}/Cos5kZero.obj --post_process &
 py metrics.py ../configs/config.json ${EXP_DATA}/ABLATION/ablation_material/ ${DATASET}/Cos5kZero.obj --post_process &
-py metrics.py ../configs/config.json ${EXP_DATA}/ABLATION/dgarment_subdivision/ ${DATASET}/Cos5kZero_subdivided.obj --post_process
+py metrics.py ../configs/config.json ${EXP_DATA}/ABLATION/dgarment_subdivision/ ${DATASET}/Cos5kZero_subdivided.obj --post_process &
+py metrics.py ../configs/ablation_5_poses.json ${EXP_DATA}/ABLATION/ablation_5_poses/ ${DATASET}/Cos5kZero.obj --post_process 
 ```
 
 To generate the table in latex:
@@ -234,4 +236,37 @@ py register_kinovis.py ../configs/config.json .../fit_sue-cos-run/capture/ --out
 Generate Figure 8 (switch comment between line 18 and 22):
 ```sh
 py plot_registration.py
+```
+
+# T-shirt
+
+```sh
+py training.py ../configs/tshirt_optucted.json
+py generate_evaluation.py ../configs/tshirt_optucted.json ${EXP_DATA}/tshirt/
+py mesh_extraction.py ../configs/tshirt_optucted.json ${EXP_DATA}/tshirt/ /home/adumouli/Data/ECCVdataset/rand_1HQAX4I58N_sim/rand_1HQAX4I58N_uv.obj --post_process
+py metrics.py ../configs/tshirt_optucted.json ${EXP_DATA}/tshirt/ /home/adumouli/Data/ECCVdataset/rand_1HQAX4I58N_sim/rand_1HQAX4I58N_uv.obj --post_process
+py latex_table.py ${EXP_DATA}/tshirt
+```
+
+# Split factors
+
+Shape:
+```sh
+py generate_evaluation.py ../configs/split_shape.json ${EXP_DATA}/SPLIT_SHAPE --split ''
+py metrics.py ../configs/split_shape.json ${EXP_DATA}/SPLIT_SHAPE ${DATASET}/Cos5kZero.obj --post_process --split ''
+py latex_table.py ${EXP_DATA}/SPLIT_SHAPE
+```
+
+Motion:
+```sh
+py generate_evaluation.py ../configs/split_motion.json ${EXP_DATA}/SPLIT_MOTION --split ''
+py metrics.py ../configs/split_motion.json ${EXP_DATA}/SPLIT_MOTION ${DATASET}/Cos5kZero.obj --post_process --split ''
+py latex_table.py ${EXP_DATA}/SPLIT_MOTION
+```
+
+Material:
+```sh
+py generate_evaluation.py ../configs/split_material.json ${EXP_DATA}/SPLIT_MATERIAL --split ''
+py metrics.py ../configs/split_material.json ${EXP_DATA}/SPLIT_MATERIAL ${DATASET}/Cos5kZero.obj --post_process --split ''
+py latex_table.py ${EXP_DATA}/SPLIT_MATERIAL
 ```

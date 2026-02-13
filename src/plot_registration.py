@@ -49,7 +49,7 @@ y_values = (np.vstack((cdf, cdf)).T.flatten()*100)
 threshold_90 = np.interp(0.9, cdf, bins[:-1])  # interpolate to find x at y=0.9
 
 # Plot
-fig, ax = plt.subplots(figsize=(4, 3), dpi=300)
+fig, ax = plt.subplots(figsize=(3, 2), dpi=300)
 ax.plot(
     x_values, y_values,
     color='black', linewidth=2.2,

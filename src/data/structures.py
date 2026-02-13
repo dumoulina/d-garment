@@ -182,7 +182,9 @@ class Mesh:
         return getattr(self, key)
     
 def dataclass_collate(batch):
-    elem = batch[0]
+    elem = batch
+    if isinstance(elem, list):
+        elem = batch[0]
 
     if is_dataclass(elem):
         return type(elem)(**{

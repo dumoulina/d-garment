@@ -168,6 +168,16 @@ def __unique_idx(x, dim=0):
 
 # returns new vertex positions
 def apply_displacement(mesh_template, uv_displacement:torch.Tensor, img_size=None, interpolation='bilinear'):
+    '''
+    Apply displacement map to the template mesh and return new vertex positions.
+    
+    :param mesh_template: Mesh
+    :param uv_displacement: torch.Tensor
+    :param img_size: int | None
+    :param interpolation: 'bilinear' | 'nearest' | 'bicubic' | None
+    :return: new vertex positions
+    :rtype: torch.Tensor
+    '''
     batched = False
     if uv_displacement.dim() == 3:
         uv_displacement = uv_displacement[None, ...]

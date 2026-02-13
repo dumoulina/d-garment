@@ -21,6 +21,7 @@ class Metrics(TensorDict):
     height_diff: float = 0.0
     mass_center: float = 0.0
     mass_center_height: float = 0.0
+    frame_count: int = 0
 
 def v2v_distance(gt_meshes:MeshCache, meshes:MeshCache) -> torch.Tensor:
 
@@ -146,4 +147,5 @@ def compute_all(gt_meshes:MeshCache, meshes:MeshCache, body_meshes:MeshCache, gt
             height_diff=hdiff,
             mass_center=mc,
             mass_center_height=mcz,
+            frame_count=len(gt_meshes)
             ).to(end_device)

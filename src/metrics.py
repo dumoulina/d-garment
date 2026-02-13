@@ -124,6 +124,8 @@ if __name__ == '__main__':
                         help='The path to the template mesh file corresponding to the cloth rest shape')
     parser.add_argument('--post_process', action='store_true',
                         help='Whether to use the post-processing to resolve penetrations')
+    parser.add_argument('--split', type=str, default='TEST',
+                        help='Split to use during evaluation')
     args = parser.parse_args()
 
     with open(args.config) as f:
@@ -142,7 +144,7 @@ if __name__ == '__main__':
     config['normalization']['trans'] = True
     config["model"]["sequence_length"] = 1
 
-    dataset = GarmentDataset(config, device=device, subsets=['TEST'], subdivide=False)
+    dataset = GarmentDataset(config, device=device, subsets=[args.split], subdivide=False)
     body_model = dataset.body_model
     gt_sequences = dataset.get_seq_dict()
     gt_template = dataset.template
@@ -154,14 +156,20 @@ if __name__ == '__main__':
     same_topology = (gt_template.faces_packed().shape[0] == template_faces.shape[0])
 
     if 'MGDDG' in args.eval_dir:
-        files = sorted(list_subfolders(args.eval_dir, "simulation_"))
-    else:
+        # files = sorted(list_subfolders(args.eval_dir, "simulation_"))
+        import glob
+        filesDepth3 = glob.glob(os.path.join(args.eval_dir+'*/*'))
+        files = sorted(list(filter(lambda f: os.path.isdir(f), filesDepth3)))
+    elif 'ContourCraft' in args.eval_dir or 'HOOD' in args.eval_dir:
         files = sorted(list_files(args.eval_dir, "simulation_"))
+    else:
+        files = sorted(list_files(args.eval_dir, ".pt"))
     body_faces = body_model.get_faces()
 
     metrics = Metrics()
     total_frames = 0
     progress_bar = tqdm(total=len(files), desc='Computing metrics')
+    
     for seq_file, gt_key in zip(files, gt_sequences):
         progress_bar.set_postfix_str(gt_key)
 
