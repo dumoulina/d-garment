@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="description" content="D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations">
+  <meta name="description" content="D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>D-Garment</title>
 
@@ -25,7 +25,7 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-2 publication-title">D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations</h1>
+          <h1 class="title is-2 publication-title">D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations</h1>
           <div class="is-size-5 publication-authors">
 
             <span class="author-block">
@@ -110,16 +110,22 @@
       <div class="column">
         <!-- <h2 class="title is-3">Overview</h2> -->
 
-        <figure>
-          <img src="./static/images/overview.svg" alt="Model overview" style="background-color:white;"/>
-        </figure>
 
+
+        <figure>
+          <img src="./static/images/SeqMatFig.webp" alt="Model overview" style="background-color:white;"/>
+        </figure>
         <div class="content has-text-justified">
           <p>
             <b>TLDR:</b> We introduce a latent diffusion model that allows to generate dynamic garment deformations from physical inputs defined by a cloth material and the underlying body shape and motion.
             Our model is capable of representing large deformations and fine wrinkles of dynamic loose clothing.
           </p>
         </div>
+        
+
+        <figure>
+          <img src="./static/images/overview.svg" alt="Model overview" style="background-color:white;"/>
+        </figure>
         <div class="content has-text-justified">
           <p>
             Our model generates garment deformations conditioned on body shape, motion and cloth material.
@@ -214,14 +220,9 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            Adjusting and deforming 3D garments to body shapes, body motion, and cloth material is an important problem in virtual and augmented reality. Applications are numerous, ranging from virtual change rooms to the entertainment and gaming industry.
-            This problem is challenging as garment dynamics influence geometric details such as wrinkling patterns, which depend on physical input including the wearer's body shape and motion, as well as cloth material features.
-            Existing work studies learning-based modeling techniques to generate garment pose-driven deformations from example data, and physics-inspired simulators to generate realistic garment dynamics.
-            We propose here a learning-based approach trained on data generated with a physics-based simulator. Compared to prior work, our 3D generative model learns garment deformations for loose cloth geometry,
-            especially for large deformations and dynamic wrinkles driven by body motion and cloth material. Furthermore, the model can be efficiently fitted to observations captured using vision sensors.
-            We propose to leverage the capability of diffusion models to learn fine-scale detail: we model the 3D garment in a 2D parameter space, and learn a latent diffusion model using this representation independent from the mesh resolution.
-            This allows to condition global and local geometric information with body and material information. We quantitatively and qualitatively evaluate our method on both simulated data and data captured with a multi-view acquisition platform.
-            Compared to strong baselines, our method is more accurate in terms of Chamfer distance.
+            We present a method to dynamically deform 3D garments, in the form of a 3D polygon mesh, based on body shape, motion, and physical cloth material properties. Considering physical cloth properties allows to learn a physically grounded model, with the advantage of being more accurate in terms of physically inspired metrics such as strain or curvature.
+            Existing work studies pose-dependent garment modeling to generate garment deformations from example data, and possibly data-driven dynamic cloth simulation to generate realistic garments in motion. We propose <i>D-Garment</i>, a learning-based approach trained on new data generated with a physics-based simulator. Compared to prior work, our 3D generative model learns garment deformations conditioned by physical material properties, which allows to model loose cloth geometry, especially for large deformations and dynamic wrinkles driven by body motion. Furthermore, the model can be efficiently fitted to observations captured using vision sensors such as 3D point clouds. We leverage the capability of diffusion models to learn flexible and powerful generative priors by modeling the 3D garment in a 2D parameter space independently from the mesh resolution. This representation allows to learn a template-specific latent diffusion model. This allows to condition global and local geometry with body and cloth material information.
+            We quantitatively and qualitatively evaluate <i>D-Garment</i> on both simulations and data captured with a multi-view acquisition platform. Compared to recent baselines, our method is more realistic and accurate in terms of shape similarity and physical validity metrics.
           </p>
         </div>
       </div>
@@ -236,13 +237,13 @@
     <p>
       If you find our work useful, consider citing:
     </p>
-    <pre><code>
-@article{dumoulin2025dgarment,
-  title={D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations},
+<pre><code>
+@article{dumoulin2026dgarment,
+  title={D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations},
   author={Dumoulin, Antoine and Boukhayma, Adnane and Boissieux, Laurence and Damodaran, Bharath Bhushan and Hellier, Pierre and Wuhrer, Stefanie},
-  journal={arXiv preprint arXiv:2504.03468},
-  year={2025},
-  url = {https://doi.org/10.48550/arXiv.2504.03468}
+  journal={TMLR},
+  year={2026},
+  url = {https://openreview.net/forum?id=NrPyio1aUK}
 }
 </code></pre>
   </div>
