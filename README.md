@@ -91,8 +91,7 @@ D-Garment model weights are in `models` folder.
 
 Changes in `config.json`:
   - `["dataset"]/["folder"]: ".../DATASET_PATH"` to the dataset root folder
-  - same for `["template_path"]` and `["subdivided_template_path"]`
-  - `["output"]/["folder"]: "../output/D-garment"` to the model weights location (or place them in this folder)
+  - same for `["template_path"]` and `["subdivided_template_path"]` to the template mesh files
 
 # Reproducibility
 
