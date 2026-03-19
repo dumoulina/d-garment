@@ -24,12 +24,13 @@
 
 If you find our work useful, please cite:
 ```
-@article{dumoulin2025dgarment,
-  title={D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations},
+@article{dumoulin2026dgarment,
+  title={D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations},
   author={Dumoulin, Antoine and Boukhayma, Adnane and Boissieux, Laurence and Damodaran, Bharath Bhushan and Hellier, Pierre and Wuhrer, Stefanie},
-  journal={arXiv preprint arXiv:2504.03468},
-  year={2025},
-  url = {https://doi.org/10.48550/arXiv.2504.03468}
+  journal={Transactions on Machine Learning Research},
+  issn={2835-8856},
+  year={2026},
+  url = {https://openreview.net/forum?id=NrPyio1aUK}
 }
 ```
 
@@ -73,37 +74,27 @@ pip install git+https://github.com/jonbarron/robust_loss_pytorch
 ```
 
 pytorch3d requires specific python/torch/cuda version, if the above fails try to fix the version according to environment.yml or compile it following their `INSTALL.md`  
-For reference this should work, set `CUDA_HOME=.../cuda12.6` if needed and adapt build thread number according to your machine:
+For reference this should work:
 ```sh
 pip install --upgrade setuptools wheel
 conda install iopath -c iopath
 CUDA_HOME=.../cuda12.6 CMAKE_BUILD_PARALLEL_LEVEL=2 pip install "git+https://github.com/facebookresearch/pytorch3d.git"
 ```
 
-If torch-mesh-isect is needed, first run `git clone https://github.com/vchoutas/torch-mesh-isect.git`
-```sh
-CUDA_HOME=.../cuda12.6 py setup.py install
-```
-
-In case cuda or install issues, try:
-```sh
-export CPATH=$CONDA_PREFIX/targets/x86_64-linux/include/:$CPATH
-conda install cuda-nvcc -c nvidia
-conda install -c conda-forge cudatoolkit-dev
-```
-
 # Setup
 
-Download SMPLH from https://mano.is.tue.mpg.de/ to `src/body_models` and set ["smpl_info"] in config.
+Download SMPLH from https://mano.is.tue.mpg.de/ to `src/body_models` or set ["smpl_info"] in `config.json`.
 
 Download dataset from https://entrepot.recherche.data.gouv.fr/dataset.xhtml?persistentId=doi:10.57745/GZTNJC 
 
 D-Garment model weights are in `models` folder.
 
-- changes in `config.json`:
-    - ["dataset"]/["folder"]: ".../DATASET_PATH" to the dataset root folder
-    - same for ["template_path"] and ["subdivided_template_path"]
-    - ["output"]/["folder"]: "../output/D-garment" to the model weights location (or place them in this folder)
+Changes in `config.json`:
+  - ["dataset"]/["folder"]: ".../DATASET_PATH" to the dataset root folder
+  - same for ["template_path"] and ["subdivided_template_path"]
+  - ["output"]/["folder"]: "../output/D-garment" to the model weights location (or place them in this folder)
+
+# Reproducibility
 
 To run the next command lines, set the root folder of the dataset and experiment folder:
 ```sh
@@ -112,7 +103,7 @@ EXP_DATA=.../EXPERIMENT_PATH
 DATASET=.../DATASET_PATH
 ```
 
-# Generate Dataset
+## Generate Dataset
 
 First install the simulator and follow instruction here:
 https://gitlab.inria.fr/elan-public-code/projectivefriction
@@ -131,7 +122,7 @@ py run_simulation.py ../configs/config.json    # simulate cloth over AMASS
 py fix_intersections.py ../configs/config.json # fix cloth penetrating body
 ```
 
-New recommended method if you want to generate your own dataset (uncomment line 101):
+Recommended method if you want to generate your own dataset (uncomment line 101):
 ```sh
 py run_simulation.py ../configs/config.json --system_tmp /tmp --max_workers 40
 ```
@@ -142,7 +133,7 @@ py mean_shape.py ../configs/config.json        # compute the mean cloth position
 .../OptCuts_bin 100 meshFolderPath MeshName 0.025 0 2 4.1 1 0
 ```
 
-# Train
+## Train
 
 The VAE decoder can be finetuned using `vae_finetune.ipynb`
 
@@ -151,7 +142,7 @@ To train the U-net diffusion model run:
 py training.py ../configs/config.json
 ```
 
-# Generate evaluation and ablations
+## Generate evaluation and ablations
 
 ```sh
 py generate_evaluation.py ../configs/config.json ${EXP_DATA}/dgarment/
@@ -160,8 +151,6 @@ py generate_evaluation.py ../configs/ablation_motion.json ${EXP_DATA}/ABLATION/a
 py generate_evaluation.py ../configs/config.json ${EXP_DATA}/ABLATION/dgarment_subdivision/ --subdivide
 py generate_evaluation.py ../configs/ablation_5_poses.json ${EXP_DATA}/ABLATION/ablation_5_poses/
 ```
-
-# Running the model
 
 ### Make the predictions
 
@@ -214,7 +203,7 @@ py metrics.py ../configs/config.json ${EXP_DATA}/DIFFUSION_STEPS/dgarment_15step
 py metrics.py ../configs/config.json ${EXP_DATA}/DIFFUSION_STEPS/dgarment_50steps/ ${DATASET}/Cos5kZero.obj --post_process
 ```
 
-# 4D-HumanOutfit reconstruction
+## 4D-HumanOutfit reconstruction
 
 This experiment requires to obtain 4DHumanOutfit license and models here: 
 https://kinovis.inria.fr/4dhumanoutfit/
@@ -226,7 +215,7 @@ py register_kinovis.py ../configs/config.json .../fit_sue-cos-walk/capture/ --ou
 py register_kinovis.py ../configs/config.json .../fit_sue-cos-run/capture/ --output .../fit_sue-cos-run/last_result --seed 260 --subdivide --unique_latent --filter_capture --concat_body
 ```
 
-## Fitting with material optimization
+### Fitting with material optimization
 
 ```sh
 py register_kinovis.py ../configs/config.json .../fit_sue-cos-walk/capture/ --output .../fit_sue-cos-walk/opti_mat --seed 356 --subdivide --unique_latent --filter_capture --optimize_material --batch_size 6 --concat_body
@@ -236,37 +225,4 @@ py register_kinovis.py ../configs/config.json .../fit_sue-cos-run/capture/ --out
 Generate Figure 8 (switch comment between line 18 and 22):
 ```sh
 py plot_registration.py
-```
-
-# T-shirt
-
-```sh
-py training.py ../configs/tshirt_optucted.json
-py generate_evaluation.py ../configs/tshirt_optucted.json ${EXP_DATA}/tshirt/
-py mesh_extraction.py ../configs/tshirt_optucted.json ${EXP_DATA}/tshirt/ /home/adumouli/Data/ECCVdataset/rand_1HQAX4I58N_sim/rand_1HQAX4I58N_uv.obj --post_process
-py metrics.py ../configs/tshirt_optucted.json ${EXP_DATA}/tshirt/ /home/adumouli/Data/ECCVdataset/rand_1HQAX4I58N_sim/rand_1HQAX4I58N_uv.obj --post_process
-py latex_table.py ${EXP_DATA}/tshirt
-```
-
-# Split factors
-
-Shape:
-```sh
-py generate_evaluation.py ../configs/split_shape.json ${EXP_DATA}/SPLIT_SHAPE --split ''
-py metrics.py ../configs/split_shape.json ${EXP_DATA}/SPLIT_SHAPE ${DATASET}/Cos5kZero.obj --post_process --split ''
-py latex_table.py ${EXP_DATA}/SPLIT_SHAPE
-```
-
-Motion:
-```sh
-py generate_evaluation.py ../configs/split_motion.json ${EXP_DATA}/SPLIT_MOTION --split ''
-py metrics.py ../configs/split_motion.json ${EXP_DATA}/SPLIT_MOTION ${DATASET}/Cos5kZero.obj --post_process --split ''
-py latex_table.py ${EXP_DATA}/SPLIT_MOTION
-```
-
-Material:
-```sh
-py generate_evaluation.py ../configs/split_material.json ${EXP_DATA}/SPLIT_MATERIAL --split ''
-py metrics.py ../configs/split_material.json ${EXP_DATA}/SPLIT_MATERIAL ${DATASET}/Cos5kZero.obj --post_process --split ''
-py latex_table.py ${EXP_DATA}/SPLIT_MATERIAL
 ```
