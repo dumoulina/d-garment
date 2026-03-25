@@ -57,6 +57,15 @@
           <div class="column has-text-centered">
             <div class="publication-links">
               <span class="link-block">
+                <a href="https://openreview.net/forum?id=NrPyio1aUK"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file"></i>
+                  </span>
+                  <span>Review</span>
+                </a>
+              </span>
+              <span class="link-block">
                 <a href="https://hal.science/hal-05027298"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
@@ -102,22 +111,54 @@
   </div>
 </section>
 
+<section class="section">
+  <div class="container is-max-desktop">
+<figure>
+  <img src="./static/images/SeqMatFig.webp" alt="Teaser" style="background-color:white;"/>
+</figure>
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            We present a method to dynamically deform 3D garments, in the form of a 3D polygon mesh, based on body shape, motion, and physical cloth material properties. Considering physical cloth properties allows to learn a physically grounded model, with the advantage of being more accurate in terms of physically inspired metrics such as strain or curvature.
+            Existing work studies pose-dependent garment modeling to generate garment deformations from example data, and possibly data-driven dynamic cloth simulation to generate realistic garments in motion. We propose <i>D-Garment</i>, a learning-based approach trained on new data generated with a physics-based simulator. Compared to prior work, our 3D generative model learns garment deformations conditioned by physical material properties, which allows to model loose cloth geometry, especially for large deformations and dynamic wrinkles driven by body motion. Furthermore, the model can be efficiently fitted to observations captured using vision sensors such as 3D point clouds. We leverage the capability of diffusion models to learn flexible and powerful generative priors by modeling the 3D garment in a 2D parameter space independently from the mesh resolution. This representation allows to learn a template-specific latent diffusion model. This allows to condition global and local geometry with body and cloth material information.
+            We quantitatively and qualitatively evaluate <i>D-Garment</i> on both simulations and data captured with a multi-view acquisition platform. Compared to recent baselines, our method is more realistic and accurate in terms of shape similarity and physical validity metrics.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" controls muted loop playsinline height="100%">
+        <source src="./static/images/DGarment2026_compressed.mp4"
+                type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+
 
 <section class="section">
   <div class="container is-max-desktop">
     <!-- Overview -->
     <div class="columns is-centered has-text-centered">
       <div class="column">
-        <!-- <h2 class="title is-3">Overview</h2> -->
+        <h2 class="title is-3">Overview</h2>
 
-
-
-        <figure>
-          <img src="./static/images/SeqMatFig.webp" alt="Model overview" style="background-color:white;"/>
-        </figure>
         <div class="content has-text-justified">
           <p>
-            <b>TLDR:</b> We introduce a latent diffusion model that allows to generate dynamic garment deformations from physical inputs defined by a cloth material and the underlying body shape and motion.
+            We introduce a latent diffusion model that allows to generate dynamic garment deformations from physical inputs defined by a cloth material and the underlying body shape and motion.
             Our model is capable of representing large deformations and fine wrinkles of dynamic loose clothing.
           </p>
         </div>
@@ -142,94 +183,6 @@
   </div>
 </section>
 
-<!-- <section class="hero teaser"></section>
-  <div class="container is-max-desktop">
-    <div class="hero-body">
-      <iframe style="border:1;display:block;margin:auto" width="853" height="480" src="https://www.youtube-nocookie.com/embed/W8oWipc-mXE" title="SiggraphAsia2024 TeaserVideo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-      <h2 class="subtitle has-text-centered">
-      </h2>
-    </div>
-  </div>
-</section> -->
-
-<!-- 
-<section class="hero teaser">
-  <div class="container is-max-desktop">
-    <div class="hero-body">
-      <video id="teaser" controls muted loop playsinline height="100%">
-        <source src="https://kinovis.inria.fr/files/2024/10/MilllimetricHumanSurfaceCapture_640x360.mp4"
-                type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-      </h2>
-    </div>
-  </div>
-</section>
--->
-
-
-<!-- <section class="hero is-light is-small">
-  <div class="hero-body">
-    <div class="container">
-      <div id="results-carousel" class="carousel results-carousel">
-        <div class="item item-ben-sho-run">
-          <video poster="" id="ben-sho-run" controls muted loop playsinline height="100%">
-            <source src="https://kinovis.inria.fr/files/2024/10/ben-sho-run.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-bob-jea-box">
-          <video poster="" id="bob-jea-box" controls muted loop playsinline height="100%">
-            <source src="https://kinovis.inria.fr/files/2024/10/bob-jea-box.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-kim-jea-dance">
-          <video poster="" id="kim-jea-dance" controls muted loop playsinline height="100%">
-            <source src="https://kinovis.inria.fr/files/2024/10/kim-jea-dance.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-leo-jea-roll">
-          <video poster="" id="leo-jea-roll" controls muted loop playsinline height="100%">
-            <source src="https://kinovis.inria.fr/files/2024/10/leo-jea-roll.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-mia-opt-cartwheel">
-          <video poster="" id="mia-opt-cartwheel" controls muted loop playsinline height="100%">
-            <source src="https://kinovis.inria.fr/files/2024/10/mia-opt-cartwheel.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div>
-    </div>
-  </div>
-  <h2 class="subtitle has-text-centered">
-    Reconstruction examples with real-time rendering and playback on the 4DHumanOutfit dataset.
-  </h2>
-</section> -->
-
-
-
-<section class="section">
-  <div class="container is-max-desktop">
-    <!-- Abstract. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Abstract</h2>
-        <div class="content has-text-justified">
-          <p>
-            We present a method to dynamically deform 3D garments, in the form of a 3D polygon mesh, based on body shape, motion, and physical cloth material properties. Considering physical cloth properties allows to learn a physically grounded model, with the advantage of being more accurate in terms of physically inspired metrics such as strain or curvature.
-            Existing work studies pose-dependent garment modeling to generate garment deformations from example data, and possibly data-driven dynamic cloth simulation to generate realistic garments in motion. We propose <i>D-Garment</i>, a learning-based approach trained on new data generated with a physics-based simulator. Compared to prior work, our 3D generative model learns garment deformations conditioned by physical material properties, which allows to model loose cloth geometry, especially for large deformations and dynamic wrinkles driven by body motion. Furthermore, the model can be efficiently fitted to observations captured using vision sensors such as 3D point clouds. We leverage the capability of diffusion models to learn flexible and powerful generative priors by modeling the 3D garment in a 2D parameter space independently from the mesh resolution. This representation allows to learn a template-specific latent diffusion model. This allows to condition global and local geometry with body and cloth material information.
-            We quantitatively and qualitatively evaluate <i>D-Garment</i> on both simulations and data captured with a multi-view acquisition platform. Compared to recent baselines, our method is more realistic and accurate in terms of shape similarity and physical validity metrics.
-          </p>
-        </div>
-      </div>
-    </div>
-    <!--/ Abstract. -->
-
-</section>
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
