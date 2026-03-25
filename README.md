@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations</h1>
+  <h1>D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations</h1>
 
   <p style="font-size:1.2em">
     <a href="https://dumoulin.me/"><strong>Antoine Dumoulin</strong></a> ·
@@ -19,24 +19,6 @@
 </div>
 
 ![Pipeline](imgs/pipeline.jpg)
-
-# Citation
-
-If you find our work useful, please cite:
-```
-@article{dumoulin2026dgarment,
-  title={D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations},
-  author={Dumoulin, Antoine and Boukhayma, Adnane and Boissieux, Laurence and Damodaran, Bharath Bhushan and Hellier, Pierre and Wuhrer, Stefanie},
-  journal={Transactions on Machine Learning Research},
-  issn={2835-8856},
-  year={2026},
-  url = {https://openreview.net/forum?id=NrPyio1aUK}
-}
-```
-
-# License
-
-This code is subject to a non-commerical [license](LICENSE.pdf).
 
 # Installation
 
@@ -225,3 +207,21 @@ Generate Figure 8 (switch comment between line 18 and 22):
 ```sh
 py plot_registration.py
 ```
+
+# Citation
+
+If you find our work useful, please cite:
+```
+@article{dumoulin2026dgarment,
+  title={D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations},
+  author={Dumoulin, Antoine and Boukhayma, Adnane and Boissieux, Laurence and Damodaran, Bharath Bhushan and Hellier, Pierre and Wuhrer, Stefanie},
+  journal={Transactions on Machine Learning Research},
+  issn={2835-8856},
+  year={2026},
+  url = {https://openreview.net/forum?id=NrPyio1aUK}
+}
+```
+
+# License
+
+This code is subject to a non-commerical [license](LICENSE.pdf).
