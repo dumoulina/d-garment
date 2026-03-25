@@ -10,7 +10,7 @@ body {
 
 .link-block a {
     margin-top: 5px;
-    margin-bottom: 5px;
+    /* margin-bottom: 5px; */
 }
 
 .dnerf {
@@ -29,7 +29,6 @@ body {
 
 .publication-banner {
   max-height: parent;
-
 }
 
 .publication-banner video {
@@ -50,13 +49,11 @@ body {
 
 .publication-venue {
     color: #555;
-    width: fit-content;
     font-weight: bold;
 }
 
 .publication-awards {
     color: #ff3860;
-    width: fit-content;
     font-weight: bolder;
 }
 

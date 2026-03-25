@@ -26,8 +26,8 @@
       <div class="columns is-centered">
         <div class="column has-text-centered">
           <h1 class="title is-2 publication-title">D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations</h1>
+          
           <div class="is-size-5 publication-authors">
-
             <span class="author-block">
               <a href="https://dumoulin.me/">Antoine Dumoulin</a><sup>1</sup>,
             </span>
@@ -49,11 +49,15 @@
           </div>
 
           <div class="is-size-5 publication-authors">
-            <span class="author-block"><sup>1</sup>Inria Centre at the University Grenoble Alpes</span>
+            <span class="author-block"><sup>1</sup>Inria Centre at the University Grenoble Alpes</span><br>
             <span class="author-block"><sup>2</sup>Inria, University of Rennes, CNRS, IRISA-UMR 6074</span>
             <span class="author-block"><sup>3</sup>Interdigital Inc.</span>
           </div>
 
+          <div class="is-size-5 publication-venue">
+            TMLR 2026
+          </div>
+          
           <div class="column has-text-centered">
             <div class="publication-links">
               <span class="link-block">
@@ -111,12 +115,21 @@
   </div>
 </section>
 
-<section class="section">
+<!-- Teaser -->
+<section class="hero teaser">
   <div class="container is-max-desktop">
-<figure>
-  <img src="./static/images/SeqMatFig.webp" alt="Teaser" style="background-color:white;"/>
-</figure>
-    <!-- Abstract. -->
+    <div class="hero-body">
+    <figure>
+      <img src="./static/images/SeqMatFig.webp" alt="Teaser" style="background-color:white;"/>
+    </figure>
+    </div>
+  </div>
+</section>
+<!--/ Teaser -->
+
+<!-- Abstract -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3">Abstract</h2>
@@ -129,29 +142,12 @@
         </div>
       </div>
     </div>
-    <!--/ Abstract. -->
-
 </section>
+<!--/ Abstract -->
 
-<section class="hero teaser">
-  <div class="container is-max-desktop">
-    <div class="hero-body">
-      <video id="teaser" controls muted loop playsinline height="100%">
-        <source src="./static/images/DGarment2026_compressed.mp4"
-                type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-      </h2>
-    </div>
-  </div>
-</section>
-
-
-
-
+<!-- Overview -->
 <section class="section">
   <div class="container is-max-desktop">
-    <!-- Overview -->
     <div class="columns is-centered has-text-centered">
       <div class="column">
         <h2 class="title is-3">Overview</h2>
@@ -178,11 +174,23 @@
 
       </div>
     </div>
-    <!--/ Overview -->
-
   </div>
 </section>
+<!--/ Overview -->
 
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+    <h2 class="title is-3">Results</h2>
+    </div>
+    <div class="publication-video">
+      <video controls muted loop playsinline height="100%">
+        <source src="./static/images/DGarment2026_compressed.mp4"
+                type="video/mp4">
+      </video>
+    </div>
+  </div>
+</section>
 
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
@@ -190,8 +198,7 @@
     <p>
       If you find our work useful, consider citing:
     </p>
-<pre><code>
-@article{dumoulin2026dgarment,
+<pre><code>@article{dumoulin2026dgarment,
   title={D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations},
   author={Dumoulin, Antoine and Boukhayma, Adnane and Boissieux, Laurence and Damodaran, Bharath Bhushan and Hellier, Pierre and Wuhrer, Stefanie},
   journal={Transactions on Machine Learning Research},
