@@ -20,12 +20,13 @@
 
 # Citation
 ```
-@article{dumoulin2025dgarment,
-  title={D-Garment: Physics-Conditioned Latent Diffusion for Dynamic Garment Deformations},
+@article{dumoulin2026dgarment,
+  title={D-Garment: Physically Grounded Latent Diffusion for Dynamic Garment Deformations},
   author={Dumoulin, Antoine and Boukhayma, Adnane and Boissieux, Laurence and Damodaran, Bharath Bhushan and Hellier, Pierre and Wuhrer, Stefanie},
-  journal={arXiv preprint arXiv:2504.03468},
-  year={2025},
-  url = {https://doi.org/10.48550/arXiv.2504.03468}
+  journal={Transactions on Machine Learning Research},
+  issn={2835-8856},
+  year={2026},
+  url = {https://openreview.net/forum?id=NrPyio1aUK}
 }
 ```
 
